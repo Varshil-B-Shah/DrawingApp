@@ -13,16 +13,13 @@ import androidx.core.graphics.createBitmap
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private lateinit var drawPath: FingerPath
-
     private lateinit var canvasPaint: Paint // how to draw
-
     private lateinit var drawPaint: Paint
-
     private var color = Color.BLACK
     private lateinit var canvas: Canvas // to hold the draw calls, what to draw
     private lateinit var canvasBitmap: Bitmap // to hold the pixels
-
     private var brushSize: Float = 0.toFloat()
+    private val paths = mutableListOf<FingerPath>()
 
     init {
         setUpDrawing()
@@ -56,6 +53,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
             // this event will be fired when the user will pick up the finger from the screen
             MotionEvent.ACTION_UP -> {
+                paths.add(drawPath)
                 drawPath = FingerPath(color, brushSize)
             }
 
@@ -69,6 +67,13 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawBitmap(canvasBitmap, 0f, 0f, drawPaint)
+
+        for (path in paths) {
+            drawPaint.strokeWidth = path.brushThickness
+            drawPath.color = path.color
+            canvas.drawPath(path, drawPaint) // drawing path on canvas
+        }
+
         if (!drawPath.isEmpty) {
             drawPaint.strokeWidth = drawPath.brushThickness
             drawPath.color = drawPath.color
