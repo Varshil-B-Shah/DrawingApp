@@ -2,15 +2,21 @@ package com.example.drawingapp
 
 import android.app.Dialog
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var drawingView: DrawingView
     private lateinit var brushButton: ImageButton
+    private lateinit var purpleButton: ImageButton
+    private lateinit var redButton: ImageButton
+    private lateinit var blueButton: ImageButton
+    private lateinit var greenButton: ImageButton
+    private lateinit var orangeButton: ImageButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -18,12 +24,24 @@ class MainActivity : AppCompatActivity() {
 
         brushButton = findViewById(R.id.brush_button)
 
+        purpleButton = findViewById(R.id.purple_button)
+        redButton = findViewById(R.id.red_button)
+        blueButton = findViewById(R.id.blue_button)
+        greenButton = findViewById(R.id.green_button)
+        orangeButton = findViewById(R.id.orange_button)
+
         drawingView = findViewById(R.id.drawing_view)
         drawingView.changeBrushSize(20.toFloat())
 
         brushButton.setOnClickListener {
             showBrushChooserDialog()
         }
+
+        purpleButton.setOnClickListener(this)
+        blueButton.setOnClickListener(this)
+        redButton.setOnClickListener(this)
+        greenButton.setOnClickListener(this)
+        orangeButton.setOnClickListener(this)
     }
 
     private fun showBrushChooserDialog() {
@@ -51,5 +69,25 @@ class MainActivity : AppCompatActivity() {
             }
         })
         brushDialog.show()
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            R.id.purple_button -> {
+                drawingView.setColor("#D14EF6")
+            }
+            R.id.green_button -> {
+                drawingView.setColor("#2DC40B")
+            }
+            R.id.orange_button -> {
+                drawingView.setColor("#EFB041")
+            }
+            R.id.red_button -> {
+                drawingView.setColor("#FA5B68")
+            }
+            R.id.blue_button -> {
+                drawingView.setColor("#2F6FF1")
+            }
+        }
     }
 }

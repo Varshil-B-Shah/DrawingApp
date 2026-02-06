@@ -11,6 +11,7 @@ import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private lateinit var drawPath: FingerPath
@@ -71,13 +72,13 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
         for (path in paths) {
             drawPaint.strokeWidth = path.brushThickness
-            drawPath.color = path.color
+            drawPaint.color = path.color
             canvas.drawPath(path, drawPaint) // drawing path on canvas
         }
 
         if (!drawPath.isEmpty) {
             drawPaint.strokeWidth = drawPath.brushThickness
-            drawPath.color = drawPath.color
+            drawPaint.color = drawPath.color
             canvas.drawPath(drawPath, drawPaint) // drawing path on canvas
         }
     }
@@ -102,8 +103,11 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         drawPaint.strokeWidth = brushSize
     }
 
-    internal class FingerPath(var color: Int, var brushThickness: Float) : Path() {
-
+    fun setColor(newColor: String) {
+        color = newColor.toColorInt()
+        drawPaint.color = color
     }
+
+    internal class FingerPath(var color: Int, var brushThickness: Float) : Path()
 
 }
