@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var blueButton: ImageButton
     private lateinit var greenButton: ImageButton
     private lateinit var orangeButton: ImageButton
+    private lateinit var undoButton: ImageButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -30,6 +31,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         greenButton = findViewById(R.id.green_button)
         orangeButton = findViewById(R.id.orange_button)
 
+        undoButton = findViewById(R.id.undo_button)
+
         drawingView = findViewById(R.id.drawing_view)
         drawingView.changeBrushSize(20.toFloat())
 
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         redButton.setOnClickListener(this)
         greenButton.setOnClickListener(this)
         orangeButton.setOnClickListener(this)
+        undoButton.setOnClickListener(this)
     }
 
     private fun showBrushChooserDialog() {
@@ -50,7 +54,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val seekBarProgress = brushDialog.findViewById<SeekBar>(R.id.dialog_seek_bar)
         val showProgressTv = brushDialog.findViewById<TextView>(R.id.dialog_text_view_progress)
 
-        seekBarProgress.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+        seekBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
                 seekBar: SeekBar,
                 p1: Int,
@@ -76,17 +80,24 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.purple_button -> {
                 drawingView.setColor("#D14EF6")
             }
+
             R.id.green_button -> {
                 drawingView.setColor("#2DC40B")
             }
+
             R.id.orange_button -> {
                 drawingView.setColor("#EFB041")
             }
+
             R.id.red_button -> {
                 drawingView.setColor("#FA5B68")
             }
+
             R.id.blue_button -> {
                 drawingView.setColor("#2F6FF1")
+            }
+            R.id.undo_button -> {
+                drawingView.undoPath()
             }
         }
     }
