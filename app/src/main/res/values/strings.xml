@@ -10,4 +10,5 @@
     <string name="orange_button">orange button</string>
     <string name="blue_button">blue button</string>
     <string name="green_button">green button</string>
+    <string name="gallery_image">gallery image</string>
 </resources>
