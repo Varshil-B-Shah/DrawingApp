@@ -1,6 +1,7 @@
 package com.example.drawingapp
 
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -8,6 +9,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import yuku.ambilwarna.AmbilWarnaDialog
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var drawingView: DrawingView
@@ -18,6 +20,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var greenButton: ImageButton
     private lateinit var orangeButton: ImageButton
     private lateinit var undoButton: ImageButton
+    private lateinit var colorPickerButton: ImageButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,6 +36,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         undoButton = findViewById(R.id.undo_button)
 
+        colorPickerButton = findViewById(R.id.color_picker_button)
+
         drawingView = findViewById(R.id.drawing_view)
         drawingView.changeBrushSize(20.toFloat())
 
@@ -46,6 +51,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         greenButton.setOnClickListener(this)
         orangeButton.setOnClickListener(this)
         undoButton.setOnClickListener(this)
+        colorPickerButton.setOnClickListener(this)
     }
 
     private fun showBrushChooserDialog() {
@@ -99,6 +105,22 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.undo_button -> {
                 drawingView.undoPath()
             }
+            R.id.color_picker_button -> {
+                showColorPickerDialog()
+            }
         }
+    }
+
+    private fun showColorPickerDialog() {
+        val dialog = AmbilWarnaDialog(this, Color.GREEN, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+            override fun onCancel(dialog: AmbilWarnaDialog?) {
+
+            }
+
+            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
+                drawingView.setColor(color)
+            }
+        })
+        dialog.show()
     }
 }
