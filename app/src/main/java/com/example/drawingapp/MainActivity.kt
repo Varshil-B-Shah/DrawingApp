@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private suspend fun saveImage(bitmap: Bitmap) {
-        val root = Environment.getExternalStorageDirectory().toString()
+        val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString()
         val myDir = File("$root/saved_images")
         myDir.mkdir()
         val generator = Random()
