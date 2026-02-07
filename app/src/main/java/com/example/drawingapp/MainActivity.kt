@@ -1,14 +1,26 @@
 package com.example.drawingapp
 
+import android.Manifest
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.Dialog
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.registerForActivityResult
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import yuku.ambilwarna.AmbilWarnaDialog
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -21,6 +33,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var orangeButton: ImageButton
     private lateinit var undoButton: ImageButton
     private lateinit var colorPickerButton: ImageButton
+    private lateinit var galleryButton: ImageButton
+
+    val requestPermission: ActivityResultLauncher<Array<String>> = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        permissions.entries.forEach {
+            val permissionName = it.key
+            val isGranted = it.value
+
+            if (isGranted && permissionName == Manifest.permission.READ_MEDIA_IMAGES) {
+                Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
+            } else {
+                if (permissionName == Manifest.permission.READ_MEDIA_IMAGES) {
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,6 +69,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         colorPickerButton = findViewById(R.id.color_picker_button)
 
+        galleryButton = findViewById(R.id.gallery_button)
+
         drawingView = findViewById(R.id.drawing_view)
         drawingView.changeBrushSize(20.toFloat())
 
@@ -52,6 +85,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         orangeButton.setOnClickListener(this)
         undoButton.setOnClickListener(this)
         colorPickerButton.setOnClickListener(this)
+        galleryButton.setOnClickListener(this)
     }
 
     private fun showBrushChooserDialog() {
@@ -102,25 +136,65 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.blue_button -> {
                 drawingView.setColor("#2F6FF1")
             }
+
             R.id.undo_button -> {
                 drawingView.undoPath()
             }
+
             R.id.color_picker_button -> {
                 showColorPickerDialog()
+            }
+
+            R.id.gallery_button -> {
+                if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    requestStoragePermission()
+                } else {
+                    //get the image
+                }
             }
         }
     }
 
     private fun showColorPickerDialog() {
-        val dialog = AmbilWarnaDialog(this, Color.GREEN, object : AmbilWarnaDialog.OnAmbilWarnaListener {
-            override fun onCancel(dialog: AmbilWarnaDialog?) {
+        val dialog =
+            AmbilWarnaDialog(this, Color.GREEN, object : AmbilWarnaDialog.OnAmbilWarnaListener {
+                override fun onCancel(dialog: AmbilWarnaDialog?) {
 
-            }
+                }
 
-            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
-                drawingView.setColor(color)
-            }
-        })
+                override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
+                    drawingView.setColor(color)
+                }
+            })
         dialog.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestStoragePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.READ_MEDIA_IMAGES
+            )
+        ) {
+            showRationaleDialog()
+        } else {
+            requestPermission.launch(
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun showRationaleDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Storage permission")
+            .setMessage("We need this permission in order to access the internal storage")
+            .setPositiveButton("Yes") { dialog, _ ->
+                requestPermission.launch(
+                    arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+                )
+                dialog.dismiss()
+            }
+        builder.create().show()
     }
 }
