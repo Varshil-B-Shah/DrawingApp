@@ -104,7 +104,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
 
     fun setColor(newColor: Any) {
-        if(newColor is String) {
+        if (newColor is String) {
             color = newColor.toColorInt()
             drawPaint.color = color
         } else {
@@ -114,7 +114,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
 
     fun undoPath() {
-        if(paths.isNotEmpty()) {
+        if (paths.isNotEmpty()) {
             paths.removeAt(paths.size - 1)
             invalidate() // refreshing the layout to reflect the drawing changes
         }

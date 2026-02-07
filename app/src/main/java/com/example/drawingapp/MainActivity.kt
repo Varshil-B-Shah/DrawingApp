@@ -1,16 +1,19 @@
 package com.example.drawingapp
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -18,13 +21,20 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.registerForActivityResult
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import yuku.ambilwarna.AmbilWarnaDialog
+import androidx.core.graphics.createBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.util.Random
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var drawingView: DrawingView
@@ -37,6 +47,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var undoButton: ImageButton
     private lateinit var colorPickerButton: ImageButton
     private lateinit var galleryButton: ImageButton
+    private lateinit var saveButton: ImageButton
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -53,7 +64,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
             if (isGranted && permissionName == Manifest.permission.READ_MEDIA_IMAGES) {
                 Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show()
-                val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                val pickIntent =
+                    Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 openGalleryLauncher.launch(pickIntent)
             } else {
                 if (permissionName == Manifest.permission.READ_MEDIA_IMAGES) {
@@ -82,6 +94,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         galleryButton = findViewById(R.id.gallery_button)
 
+        saveButton = findViewById(R.id.save_button)
+
         drawingView = findViewById(R.id.drawing_view)
         drawingView.changeBrushSize(20.toFloat())
 
@@ -97,6 +111,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         undoButton.setOnClickListener(this)
         colorPickerButton.setOnClickListener(this)
         galleryButton.setOnClickListener(this)
+        saveButton.setOnClickListener(this)
     }
 
     private fun showBrushChooserDialog() {
@@ -165,8 +180,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 ) {
                     requestStoragePermission()
                 } else {
-                    val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    val pickIntent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                     openGalleryLauncher.launch(pickIntent)
+                }
+            }
+
+            R.id.save_button -> {
+                val layout = findViewById<FrameLayout>(R.id.frameLayout)
+                val bitmap = getBitmapFromView(layout)
+
+                CoroutineScope(IO).launch {
+                    saveImage(bitmap)
                 }
             }
         }
@@ -196,7 +221,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             showRationaleDialog()
         } else {
             requestPermission.launch(
-                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+                arrayOf(
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
             )
         }
     }
@@ -208,10 +236,49 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             .setMessage("We need this permission in order to access the internal storage")
             .setPositiveButton("Yes") { dialog, _ ->
                 requestPermission.launch(
-                    arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+                    arrayOf(
+                        Manifest.permission.READ_MEDIA_IMAGES,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
                 )
                 dialog.dismiss()
             }
         builder.create().show()
+    }
+
+    private fun getBitmapFromView(view: View): Bitmap {
+        val bitmap = createBitmap(view.width, view.height)
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return bitmap
+    }
+
+    private suspend fun saveImage(bitmap: Bitmap) {
+        val root = Environment.getExternalStorageDirectory().toString()
+        val myDir = File("$root/saved_images")
+        myDir.mkdir()
+        val generator = Random()
+        var n = 10000
+        n = generator.nextInt(n)
+        val outPutFile = File(myDir, "Images-$n.jpg")
+        if (outPutFile.exists()) {
+            outPutFile.delete()
+        } else {
+            try {
+                val out = FileOutputStream(outPutFile)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                out.flush()
+                out.close()
+            } catch (e: Exception) {
+                e.stackTrace
+            }
+            withContext(Main) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "${outPutFile.absolutePath} saved!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 }
